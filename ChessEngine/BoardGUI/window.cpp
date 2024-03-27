@@ -87,9 +87,11 @@ Window::Window(int size,const char *name,const char *pieceImg[16])
 }
 
 
+
 bool Window::display(){
     int indexPiece, posX, posY;
     bool isDragging = false;
+    bool isInBound = false;
     sf::Vector2f startingPosition;
     sf::Vector2f dragPieceStartPosition;
     while(window.isOpen()){
@@ -127,8 +129,8 @@ bool Window::display(){
                     posX = (event.mouseButton.x-squareShape.left)/squares[0][0].getSize().x;
                     posY = (event.mouseButton.y-squareShape.top)/squares[0][0].getSize().x;
                     indexPiece = posY*8 + posX;
-                     
-                    if(board.position[indexPiece] != 0){
+                    isInBound = posX < 8 && posY < 8 && posX >= 0 && posY >= 0; 
+                    if(board.position[indexPiece] != 0 && isInBound){
                         startingPosition = sf::Vector2f(event.mouseButton.x, event.mouseButton.y);
                         dragPieceStartPosition = pieceSprites[indexPiece].getPosition();
                         isDragging = true;
@@ -146,8 +148,10 @@ bool Window::display(){
                         int newPosY = (event.mouseButton.y-squareShape.top) / squares[0][0].getSize().x;
                         int newIndex = newPosY * 8 + newPosX;
 
-                        std::cout << newPosX << ", " << newPosY << ", "<< newIndex << std::endl;
-                        if(newIndex != indexPiece){
+                        isInBound = newPosX < 8 && newPosY < 8 && newPosX >= 0 && newPosY >= 0;
+                        
+                        
+                        if(newIndex != indexPiece && isInBound){
                             pieceSprites[newIndex] = pieceSprites[indexPiece];
                             pieceSprites[newIndex].setPosition(sf::Vector2f(squareShape.left + newPosX * squares[0][0].getSize().x, squareShape.top + newPosY * squares[0][0].getSize().x));
                             board.position[newIndex] = board.position[indexPiece];
@@ -156,6 +160,13 @@ bool Window::display(){
                             pieceSprites[indexPiece].setPosition(dragPieceStartPosition);
                         }
                         isDragging = false;
+
+                        for(int i = 0; i< 64; i++){
+                            std::cout << board.position[i] << " ";
+                            if(i%8 == 7){
+                                std::cout << std::endl;
+                            }
+                        }
                     }
                     break;
 
