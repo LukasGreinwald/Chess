@@ -1,14 +1,41 @@
-#ifndef CHESS_BOARD_H
-#define CHESS_BOARD_H
+#ifndef BOARD_H
+#define BOARD_H
 #include <SFML/Window.hpp>
 #include <SFML/Graphics.hpp>
+#include "piece.h"
+#include <stdio.h>
+#include <iostream>
+#include <vector>
 
 
-class ChessBoard
+struct Move{
+    int startingSquare, targetSquare;
+
+
+    Move(int starting, int target){
+        startingSquare = starting;
+        targetSquare = target;
+    }
+    bool operator==(const Move& first){
+        bool start = startingSquare == first.startingSquare;
+        bool end = targetSquare == first.targetSquare;
+
+        return start && end;
+    }
+
+    bool operator!=(const Move& comp){
+        bool start = startingSquare != comp.startingSquare;
+        bool end = targetSquare != comp.targetSquare;
+
+        return start || end;
+    }
+};
+class Board
 {
 
 public:
-    
+    Piece piece;
+    static const int movingOffsets[8];
     int position[64] = {
         4, 3, 2, 5, 6, 2, 3, 4,
         1, 1, 1, 1, 1, 1, 1, 1,
@@ -21,14 +48,18 @@ public:
     };
 
     
-    ChessBoard(){};
+    Board();
+
+    bool QueenSideCastlingRights;
+    bool KingSideCastlingRights;
 
 
+    bool isSlidingPiece(int type);
+    std::vector<Move> generateLegalMoves();
+    unsigned short calculateSquarestoEdge(int currPosition);
 
 
-    bool fenToBoard(char* fenString, int *position){
-        return false;
-    }
+    bool fenToBoard(char* fenString, int *position);
     
 };
 

@@ -14,7 +14,7 @@ private:
     sf::RectangleShape squares[8][8];
     sf::IntRect squareShape;
     sf::Color squareColors[2];
-    ChessBoard board;
+    Board board;
     int width, height;
     sf::Sprite pieceSprites[64];
     sf::Texture pieceTextures[16];

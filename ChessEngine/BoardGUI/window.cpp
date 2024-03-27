@@ -94,8 +94,10 @@ bool Window::display(){
     bool isInBound = false;
     sf::Vector2f startingPosition;
     sf::Vector2f dragPieceStartPosition;
+
+    
     while(window.isOpen()){
-        
+        std::vector<Move> legal = board.generateLegalMoves();
 
         sf::Event event;
         while(window.pollEvent(event)){
@@ -150,8 +152,15 @@ bool Window::display(){
 
                         isInBound = newPosX < 8 && newPosY < 8 && newPosX >= 0 && newPosY >= 0;
                         
+                        Move movePlayed = Move(indexPiece, newIndex);
+                        std::cout << "the legal moves are." << std::endl;
+                        //newIndex != indexPiece && isInBound
+                        for(int i =0; i< legal.size(); i++){
+                            Move move = legal[i];
+                            std::cout << move.startingSquare << ", " << move.targetSquare << std::endl;
+                        }
                         
-                        if(newIndex != indexPiece && isInBound){
+                        if((std::find(legal.begin(), legal.end(), movePlayed) != legal.end()) || board.position[indexPiece] == board.piece.pawn){
                             pieceSprites[newIndex] = pieceSprites[indexPiece];
                             pieceSprites[newIndex].setPosition(sf::Vector2f(squareShape.left + newPosX * squares[0][0].getSize().x, squareShape.top + newPosY * squares[0][0].getSize().x));
                             board.position[newIndex] = board.position[indexPiece];
@@ -161,12 +170,7 @@ bool Window::display(){
                         }
                         isDragging = false;
 
-                        for(int i = 0; i< 64; i++){
-                            std::cout << board.position[i] << " ";
-                            if(i%8 == 7){
-                                std::cout << std::endl;
-                            }
-                        }
+                        
                     }
                     break;
 
