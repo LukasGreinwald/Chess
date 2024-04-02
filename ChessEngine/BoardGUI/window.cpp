@@ -98,11 +98,11 @@ bool Window::display(){
     
     while(window.isOpen()){
         
-        std::vector<Move> legal = board.generateLegalMoves(black);
+        
 
         sf::Event event;
         while(window.pollEvent(event)){
-
+            std::vector<Move> legal = board.generateLegalMoves(black);    
             switch(event.type){
                 case sf::Event::Closed:
                     window.close();
@@ -137,6 +137,12 @@ bool Window::display(){
                         startingPosition = sf::Vector2f(event.mouseButton.x, event.mouseButton.y);
                         dragPieceStartPosition = pieceSprites[indexPiece].getPosition();
                         isDragging = true;
+                        std::cout << "the legal moves are." << std::endl;
+                        //
+                        for(int i =0; i< legal.size(); i++){
+                            Move move = legal[i];
+                            std::cout << move.startingSquare << ", " << move.targetSquare << std::endl;
+                        }
                     }
                     break;
                 case sf::Event::MouseMoved:   
@@ -154,12 +160,7 @@ bool Window::display(){
                         isInBound = newPosX < 8 && newPosY < 8 && newPosX >= 0 && newPosY >= 0;
                         
                         Move movePlayed = Move(indexPiece, newIndex);
-                        std::cout << "the legal moves are." << std::endl;
-                        //
-                        for(int i =0; i< legal.size(); i++){
-                            Move move = legal[i];
-                            std::cout << move.startingSquare << ", " << move.targetSquare << std::endl;
-                        }
+                        
                         
                         if((std::find(legal.begin(), legal.end(), movePlayed) != legal.end()) || ((board.position[indexPiece]&board.piece.pieceMask) == board.piece.pawn) && (newIndex != indexPiece && isInBound)){
                             pieceSprites[newIndex] = pieceSprites[indexPiece];

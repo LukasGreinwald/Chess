@@ -112,138 +112,86 @@ std::vector<Move> Board::generateLegalMoves(bool black){
                 }
                 
                 if((curr&piece.pieceMask) != piece.rook){
+                    int maxDistL = std::max(top, bottom);
+                    int maxDistV = std::max(left, right);
+                    int maxDist = std::max(maxDistL, maxDistV);
+
                     
-                    int sideMin = std::min(left, right);
-                    int latMin = std::min(top, bottom);
-                    bool hitPieceUP = false;
-                    bool hitPieceDown = false;
-                    bool side = right > left;
 
-
-                    if(sideMin >= latMin){
-                        int osUp = side ? movingOffsets[6] : movingOffsets[4];
-                        int osDown = side ? movingOffsets[5] : movingOffsets[7];
-
-                        for(int i = 1; i <= sideMin; i++){
-                            int moveIndexUP = sq + i*osUp;
-                            int moveIndexDown = sq + i*osDown;
-                            Move moveUp = Move(sq, moveIndexUP);
-                            Move moveDown = Move(sq, moveIndexDown);
-
-                            if(!hitPieceUP){
-                                if(position[moveIndexUP] == 0){
-                                some.push_back(moveUp);
-                                }else{
-                                    if(piece.hasDiffColor(curr, position[moveIndexUP])){
-                                        some.push_back(moveUp);
-                                    }
-                                    hitPieceUP = true;
-                                }
-                            }
-                            if(!hitPieceDown){
-                                if(position[moveIndexDown] == 0){
-                                    some.push_back(moveDown);
-                                }else{
-                                    if(piece.hasDiffColor(curr, position[moveIndexDown])){
-                                        some.push_back(moveDown);
-                                    }
-                                    hitPieceDown = true;
-                                }
-                            }
-                        }
-
-                        osUp = side ? movingOffsets[4] : movingOffsets[6];
-                        osDown = side ?  movingOffsets[7] : movingOffsets[5];
-                        
-                        for(int i = 1; i <= top; i++){
-                            int moveIndexUP = sq + i*osUp;
-                            Move move = Move(sq, moveIndexUP);
-                            if(position[moveIndexUP] != 0){
-                                if(piece.hasDiffColor(curr, position[moveIndexUP] )){
+                    if(right && top){
+                        for(int i = 1; i <= maxDist; i++){                  //go right up
+                            int moveIndex = sq + i*movingOffsets[4];
+                            Move move = Move(sq, moveIndex);
+                            if(position[moveIndex] != 0){
+                                if(piece.hasDiffColor(curr, position[moveIndex] )){
                                     some.push_back(move);
-                            }
-                            break;
+                                }
+                                break;
                             }
                             some.push_back(move);
-                        }
 
-                        for(int i = 1; i <= bottom; i++){
-                            int moveIndexDown = sq + i*osDown;
-                            Move move = Move(sq, moveIndexDown);
-                            if(position[moveIndexDown] != 0){
-                                if(piece.hasDiffColor(curr, position[moveIndexDown] )){
-                                    some.push_back(move);
+                            if((moveIndex%8 == 7) || (moveIndex/8 == 0)){
+                                break;
                             }
-                            break;
-                            }
-                            some.push_back(move);
-                        }
-                          
-                    }else{
-                        side = bottom > top;
-                        int osUp = side ? movingOffsets[6] : movingOffsets[4];
-                        int osDown = side ? movingOffsets[5] : movingOffsets[7];
-
-                        for(int i = 1; i <= latMin; i++){
-                            int moveIndexUP = sq + i*osUp;
-                            int moveIndexDown = sq + i*osDown;
-                            Move moveUp = Move(sq, moveIndexUP);
-                            Move moveDown = Move(sq, moveIndexDown);
-
-                            if(!hitPieceUP){
-                                if(position[moveIndexUP] == 0){
-                                some.push_back(moveUp);
-                                }else{
-                                    if(piece.hasDiffColor(curr, position[moveIndexUP])){
-                                        some.push_back(moveUp);
-                                    }
-                                    hitPieceUP = true;
-                                }
-                            }
-                            if(!hitPieceDown){
-                                if(position[moveIndexDown] == 0){
-                                    some.push_back(moveDown);
-                                }else{
-                                    if(piece.hasDiffColor(curr, position[moveIndexDown])){
-                                        some.push_back(moveDown);
-                                    }
-                                    hitPieceDown = true;
-                                }
-                            }
-                        }
-
-                        osUp = side ? movingOffsets[5] : movingOffsets[6];
-                        osDown = side ?  movingOffsets[7] : movingOffsets[4];
-                        
-                        for(int i = 1; i <= left; i++){
-                            int moveIndexUP = sq + i*osUp;
-                            Move move = Move(sq, moveIndexUP);
-                            if(position[moveIndexUP] != 0){
-                                if(piece.hasDiffColor(curr, position[moveIndexUP])){
-                                    some.push_back(move);
-                            }
-                            break;
-                            }
-                            some.push_back(move);
-                        }
-
-                        for(int i = 1; i <= right; i++){
-                            int moveIndexDown = sq + i*osDown;
-                            Move move = Move(sq, moveIndexDown);
-                            if(position[moveIndexDown] != 0){
-                                if(piece.hasDiffColor(curr, position[moveIndexDown] )){
-                                    some.push_back(move);
-                            }
-                            break;
-                            }
-                            some.push_back(move);
                         }
                     }
-                }
-                
+                    if(right && bottom){
+                        for(int i = 1; i <= maxDist; i++){                  //go right down
+                            int moveIndex = sq + i*movingOffsets[7];
+                            Move move = Move(sq, moveIndex);
+                            if(position[moveIndex] != 0){
+                                if(piece.hasDiffColor(curr, position[moveIndex])){
+                                    some.push_back(move);
+                                }
+                                break;
+                            }
+                            some.push_back(move);
 
+                            if((moveIndex%8 == 7) || (moveIndex/8 == 7)){
+                                break;
+                            }
+                        }
+                    }
+                    if(left && bottom){
+                        for(int i = 1; i <= maxDist; i++){                  //go left down
+                            int moveIndex = sq + i*movingOffsets[5];
+                            Move move = Move(sq, moveIndex);
+                            if(position[moveIndex] != 0){
+                                if(piece.hasDiffColor(curr, position[moveIndex] )){
+                                    some.push_back(move);
+                                }
+                                break;
+                            }
+                            some.push_back(move);
+
+                            if((moveIndex%8 == 0) || (moveIndex/8 == 7)){
+                                break;
+                            }
+                        }
+                    }
+
+                    if(left && top){
+                        for(int i = 1; i <= maxDist; i++){                  //go left up
+                            int moveIndex = sq + i*movingOffsets[6];
+                            Move move = Move(sq, moveIndex);
+                            if(position[moveIndex] != 0){
+                                if(piece.hasDiffColor(curr, position[moveIndex] )){
+                                    some.push_back(move);
+                                }
+                                break;
+                            }
+                            some.push_back(move);
+
+                            if((moveIndex%8 == 7) || (moveIndex/8 == 0)){
+                                break;
+                            }
+                        }
+                    }
+
+                }
             }
         }
+        
     }
     return some;
 }
