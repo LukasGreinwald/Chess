@@ -55,7 +55,7 @@ public:
 
 
     bool isSlidingPiece(int type);
-    std::vector<Move> generateLegalMoves();
+    std::vector<Move> generateLegalMoves(bool black = false);
     unsigned short calculateSquarestoEdge(int currPosition);
 
 

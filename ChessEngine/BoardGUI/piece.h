@@ -20,7 +20,7 @@ public:
     
     
     static const int white = 0b1000;
-
+    static const int pieceMask = 0b111;
     static const int blackPawn = pawn | 0;         //1
     static const int blackBishop = bishop | 0;     //2
     static const int blackKnight = knight | 0;     //3
