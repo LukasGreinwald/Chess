@@ -36,6 +36,7 @@ class Board
 public:
     Piece piece;
     static const int movingOffsets[8];
+    static const int knightOffsets[8];
     int position[64] = {
         4, 3, 2, 5, 6, 2, 3, 4,
         1, 1, 1, 1, 1, 1, 1, 1,

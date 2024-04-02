@@ -9,6 +9,7 @@
 #include <vector>
 
 int const Board::movingOffsets[8] = {-1,1,-8,8,-7,7,-9,9};
+int const Board::knightOffsets[8] = {-10, 10, 6, -6, -15, 15, 17, -17};
 
 unsigned short Board::calculateSquarestoEdge(int currPosition){       //XXXXBBBTTTRRRLLL
     unsigned short left,right, top, bottom, value;
@@ -51,7 +52,39 @@ std::vector<Move> Board::generateLegalMoves(bool black){
             int bottom = borders&bordersMask;
             
             
+            if((curr&piece.pieceMask) == piece.king){
+                for(int i : movingOffsets){
+                    bool isAtBorder = ((top == 0) && (i == -7 || i == -8 || i == -9)) 
+                                        || ((bottom == 0) && (i == 7 || i == 8 || i == 9))
+                                        || ((left == 0) && (i == -9 || i == -1 || i == 7)) 
+                                        || ((right == 0) && (i == 9 || i == 1 || i == -7));
+                    int moveIndex = sq + i;
+                    Move move = Move(sq, moveIndex);
 
+                    if(!isAtBorder &&(position[moveIndex] == 0 || (piece.hasDiffColor(curr, position[moveIndex])))){
+                        some.push_back(move);
+                    }
+                }
+            }
+
+            if((curr&piece.pieceMask) == piece.knight){
+                for(int i : knightOffsets){
+                    bool isAtBorder = ((top == 0) && (i < 0)) 
+                                        || ((top == 1) && (i < -10))
+                                        || ((bottom == 0) && (i > 0))
+                                        || ((bottom == 1) && (i > 10))
+                                        || ((left == 0) && (i == -10 || i == 6 || i == 15 || i == -17)) 
+                                        || ((left == 1) && (i == -10 || i == 6))
+                                        || ((right == 0) && (i == 10 || i == -6 || i == -15 || i == 17))
+                                        || ((right == 1) && (i == 10 || i == -6));
+                    int moveIndex = sq + i;
+                    Move move = Move(sq, moveIndex);
+
+                    if(!isAtBorder &&(position[moveIndex] == 0 || (piece.hasDiffColor(curr, position[moveIndex])))){
+                        some.push_back(move);
+                    }
+                }
+            }
             if(isSlidingPiece(curr)){
                 
                 if((curr&piece.pieceMask) != piece.bishop){
