@@ -32,7 +32,7 @@ unsigned short Board::calculateSquarestoEdge(int currPosition){       //XXXXBBBT
 }
 
 
-std::vector<Move> Board::generateLegalMoves(bool black){
+std::vector<Move> Board::generateMoves(bool black){
     std::vector<Move> some;
     for(int sq = 0; sq < 64; sq++){
         int curr = position[sq];
@@ -51,7 +51,85 @@ std::vector<Move> Board::generateLegalMoves(bool black){
 
             int bottom = borders&bordersMask;
             
-            
+            if((curr&piece.pieceMask) == piece.pawn){
+                if(black){
+                    int moveIndex = sq + 8; 
+                    
+                    if(position[moveIndex] == 0){
+                        Move move = Move(sq, moveIndex);
+                        if((moveIndex/8) == 7){
+                            move.isProm = true;
+                        }
+                        some.push_back(move);
+                    }
+                    moveIndex = sq + 7;
+
+                    if((left != 0) && (position[moveIndex] != 0) && piece.isWhite(position[moveIndex])){
+                        Move move = Move(sq, moveIndex);
+                        if((moveIndex/8) == 7){
+                            move.isProm = true;
+                        }
+                        some.push_back(move);
+                    }
+
+                    moveIndex = sq + 9;
+
+                    if((right != 0) && (position[moveIndex] != 0) && piece.isWhite(position[moveIndex])){
+                        Move move = Move(sq, moveIndex);
+                        if((moveIndex/8) == 7){
+                            move.isProm = true;
+                        }
+                        some.push_back(move);
+                    }
+                    moveIndex = sq + 16;
+
+                    if(top == 1){
+                        if((position[moveIndex] == 0) && (position[sq+8] == 0)){
+                            Move move = Move(sq, moveIndex);
+                            some.push_back(move);
+                        }
+                    }
+                }else{
+                    int moveIndex = sq - 8; 
+                    
+                    if(position[moveIndex] == 0){
+                        Move move = Move(sq, moveIndex);
+                        if((moveIndex/8) == 0){
+                            move.isProm = true;
+                        }
+                        some.push_back(move);
+                    }
+                    moveIndex = sq - 7;
+
+                    if((right != 0 ) && (position[moveIndex] != 0) && !piece.isWhite(position[moveIndex])){
+                        Move move = Move(sq, moveIndex);
+                        if((moveIndex/8) == 0){
+                            move.isProm = true;
+                        }
+                        some.push_back(move);
+                    }
+
+                    moveIndex = sq - 9;
+
+                    if((left != 0) && (position[moveIndex] != 0) && !piece.isWhite(position[moveIndex])){
+                        Move move = Move(sq, moveIndex);
+                        if((moveIndex/8) == 0){
+                            move.isProm = true;
+                        }
+                        some.push_back(move);
+                    }
+                    moveIndex = sq - 16;
+
+                    if(bottom == 1){
+                        if((position[moveIndex] == 0) && (position[sq-8] == 0)){
+                            Move move = Move(sq, moveIndex);
+                            some.push_back(move);
+                        }
+                    }
+                }
+            }
+
+
             if((curr&piece.pieceMask) == piece.king){
                 for(int i : movingOffsets){
                     bool isAtBorder = ((top == 0) && (i == -7 || i == -8 || i == -9)) 
@@ -63,6 +141,37 @@ std::vector<Move> Board::generateLegalMoves(bool black){
 
                     if(!isAtBorder &&(position[moveIndex] == 0 || (piece.hasDiffColor(curr, position[moveIndex])))){
                         some.push_back(move);
+                    }
+                }
+                if(black){
+                    if(BKingSideCastlingRights){
+                        if((position[sq + 1] == 0) && (position[sq + 2] == 0)){
+                            Move move = Move(sq, sq + 2);
+                            move.kCastle = true;
+                            some.push_back(move);
+                        }
+                    }
+                    if(BQueenSideCastlingRights){
+                        if((position[sq - 1] == 0) && (position[sq - 2] == 0) && (position[sq-3] == 0)){
+                            Move move = Move(sq, sq - 2);
+                            move.qCastle = true;
+                            some.push_back(move);
+                        }
+                    }
+                }else{
+                    if(WKingSideCastlingRights){
+                        if((position[sq + 1] == 0) && (position[sq + 2] == 0)){
+                            Move move = Move(sq, sq + 2);
+                            move.kCastle = true;
+                            some.push_back(move);
+                        }
+                    }
+                    if(WQueenSideCastlingRights){
+                        if((position[sq - 1] == 0) && (position[sq - 2] == 0) && (position[sq-3] == 0)){
+                            Move move = Move(sq, sq - 2);
+                            move.qCastle = true;
+                            some.push_back(move);
+                        }
                     }
                 }
             }
@@ -190,7 +299,7 @@ std::vector<Move> Board::generateLegalMoves(bool black){
                             int moveIndex = sq + i*movingOffsets[5];
                             Move move = Move(sq, moveIndex);
                             if(position[moveIndex] != 0){
-                                if(piece.hasDiffColor(curr, position[moveIndex] )){
+                                if(piece.hasDiffColor(curr, position[moveIndex])){
                                     some.push_back(move);
                                 }
                                 break;
@@ -227,6 +336,11 @@ std::vector<Move> Board::generateLegalMoves(bool black){
         
     }
     return some;
+}
+
+std::vector<Move> Board::generateLegalMoves(bool black){
+    return generateMoves(black);
+    
 }
 
 

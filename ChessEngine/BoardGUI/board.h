@@ -10,7 +10,14 @@
 
 struct Move{
     int startingSquare, targetSquare;
+    bool qCastle = false;
+    bool kCastle = false;
 
+    bool isProm = false;
+    bool qProm = false;
+    bool bProm = false;
+    bool kProm = false;
+    bool rProm = false;
 
     Move(int starting, int target){
         startingSquare = starting;
@@ -51,12 +58,15 @@ public:
     
     Board();
 
-    bool QueenSideCastlingRights;
-    bool KingSideCastlingRights;
+    bool WQueenSideCastlingRights = true;
+    bool WKingSideCastlingRights = true;
+    bool BQueenSideCastlingRights = true;
+    bool BKingSideCastlingRights = true;
 
 
     bool isSlidingPiece(int type);
     std::vector<Move> generateLegalMoves(bool black = false);
+    std::vector<Move> generateMoves(bool black = false);
     unsigned short calculateSquarestoEdge(int currPosition);
 
 

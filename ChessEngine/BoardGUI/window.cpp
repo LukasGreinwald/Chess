@@ -40,7 +40,7 @@ void Window::mapPieces(){
             int y = sq/8;
             int length = squareShape.width/8;
             pieceSprites[sq].setPosition(sf::Vector2f(squareShape.left+ (x*length), squareShape.top + (y*length)));
-            std::cout << pieceSprites[sq].getScale().x <<" "<< pieceSprites[sq].getScale().y << std::endl;
+            
             pieceSprites[sq].setScale(sf::Vector2f(squareShape.width/3400.f, squareShape.width/3400.f));
         
         }
@@ -102,6 +102,26 @@ bool Window::display(){
 
         sf::Event event;
         while(window.pollEvent(event)){
+            if(board.position[4] != board.piece.blackKing){
+                board.BKingSideCastlingRights = false;
+                board.BQueenSideCastlingRights = false;
+            }
+            if(board.position[0] != board.piece.blackRook){
+                board.BQueenSideCastlingRights = false;
+            }
+            if(board.position[7] != board.piece.blackRook){
+                board.BKingSideCastlingRights = false;
+            }
+            if(board.position[60] != board.piece.whiteKing){
+                board.WKingSideCastlingRights = false;
+                board.WQueenSideCastlingRights = false;
+            }
+            if(board.position[56] != board.piece.blackRook){
+                board.WQueenSideCastlingRights = false;
+            }
+            if(board.position[63] != board.piece.whiteRook){
+                board.WKingSideCastlingRights = false;
+            }
             std::vector<Move> legal = board.generateLegalMoves(black);    
             switch(event.type){
                 case sf::Event::Closed:
@@ -162,11 +182,30 @@ bool Window::display(){
                         Move movePlayed = Move(indexPiece, newIndex);
                         
                         
-                        if((std::find(legal.begin(), legal.end(), movePlayed) != legal.end()) || ((board.position[indexPiece]&board.piece.pieceMask) == board.piece.pawn) && (newIndex != indexPiece && isInBound)){
+                        auto findElement = std::find(legal.begin(), legal.end(), movePlayed);
+                        bool assertLegalMove = findElement != legal.end();
+                        if(assertLegalMove){
+                            movePlayed = legal[findElement - legal.begin()];
                             pieceSprites[newIndex] = pieceSprites[indexPiece];
                             pieceSprites[newIndex].setPosition(sf::Vector2f(squareShape.left + newPosX * squares[0][0].getSize().x, squareShape.top + newPosY * squares[0][0].getSize().x));
                             board.position[newIndex] = board.position[indexPiece];
+                            
+                            if(movePlayed.qCastle){
+                                pieceSprites[black? 3:59] = pieceSprites[black? 0:56];
+                                pieceSprites[black? 3:59].setPosition(sf::Vector2f(squareShape.left + (newPosX + 1) * squares[0][0].getSize().x, squareShape.top + newPosY * squares[0][0].getSize().x));
+                                board.position[black? 3:59] = board.piece.blackRook;
+                                board.position[black? 0:56] = 0;
+                            }
+                            if(movePlayed.kCastle){
+                                pieceSprites[black? 5:61] = pieceSprites[black? 7:63];
+                                pieceSprites[black? 5:61].setPosition(sf::Vector2f(squareShape.left + (newPosX - 1) * squares[0][0].getSize().x, squareShape.top + newPosY * squares[0][0].getSize().x));
+                                board.position[black? 5:61] = board.piece.blackRook;
+                                board.position[black? 7:63] = 0;
+                                
+                                
+                            }
                             board.position[indexPiece] = 0;
+                            
                             black = !black;
                         }else{
                             pieceSprites[indexPiece].setPosition(dragPieceStartPosition);
