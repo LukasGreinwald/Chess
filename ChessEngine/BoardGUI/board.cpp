@@ -69,6 +69,7 @@ std::vector<Move> Board::generateMoves(bool black){
                         if((moveIndex/8) == 7){
                             move.isProm = true;
                         }
+                        move.Capture = position[moveIndex];
                         some.push_back(move);
                     }
 
@@ -79,6 +80,7 @@ std::vector<Move> Board::generateMoves(bool black){
                         if((moveIndex/8) == 7){
                             move.isProm = true;
                         }
+                        move.Capture = position[moveIndex];
                         some.push_back(move);
                     }
                     moveIndex = sq + 16;
@@ -106,6 +108,7 @@ std::vector<Move> Board::generateMoves(bool black){
                         if((moveIndex/8) == 0){
                             move.isProm = true;
                         }
+                        move.Capture = position[moveIndex];
                         some.push_back(move);
                     }
 
@@ -116,6 +119,7 @@ std::vector<Move> Board::generateMoves(bool black){
                         if((moveIndex/8) == 0){
                             move.isProm = true;
                         }
+                        move.Capture = position[moveIndex];
                         some.push_back(move);
                     }
                     moveIndex = sq - 16;
@@ -140,6 +144,7 @@ std::vector<Move> Board::generateMoves(bool black){
                     Move move = Move(sq, moveIndex);
 
                     if(!isAtBorder &&(position[moveIndex] == 0 || (piece.hasDiffColor(curr, position[moveIndex])))){
+                        move.Capture = position[moveIndex];
                         some.push_back(move);
                     }
                 }
@@ -190,6 +195,7 @@ std::vector<Move> Board::generateMoves(bool black){
                     Move move = Move(sq, moveIndex);
 
                     if(!isAtBorder &&(position[moveIndex] == 0 || (piece.hasDiffColor(curr, position[moveIndex])))){
+                        move.Capture = position[moveIndex];
                         some.push_back(move);
                     }
                 }
@@ -206,6 +212,7 @@ std::vector<Move> Board::generateMoves(bool black){
                         
                         if(position[moveIndex] != 0){
                             if(piece.hasDiffColor(curr, position[moveIndex] )){
+                                move.Capture = position[moveIndex];
                                 some.push_back(move);
                             }
                             break;
@@ -219,6 +226,7 @@ std::vector<Move> Board::generateMoves(bool black){
                         Move move = Move(sq, moveIndex);
                         if(position[moveIndex] != 0){
                             if(piece.hasDiffColor(curr, position[moveIndex] )){
+                                move.Capture = position[moveIndex];
                                 some.push_back(move);
                             }
                             break;
@@ -231,6 +239,7 @@ std::vector<Move> Board::generateMoves(bool black){
                         Move move = Move(sq, moveIndex);
                         if(position[moveIndex] != 0){
                             if(piece.hasDiffColor(curr, position[moveIndex] )){
+                                move.Capture = position[moveIndex];
                                 some.push_back(move);
                             }
                             break;
@@ -243,6 +252,7 @@ std::vector<Move> Board::generateMoves(bool black){
                         Move move = Move(sq, moveIndex);
                         if(position[moveIndex] != 0){
                             if(piece.hasDiffColor(curr, position[moveIndex] )){
+                                move.Capture = position[moveIndex];
                                 some.push_back(move);
                             }
                             break;
@@ -264,8 +274,10 @@ std::vector<Move> Board::generateMoves(bool black){
                         for(int i = 1; i <= maxDist; i++){                  //go right up
                             int moveIndex = sq + i*movingOffsets[4];
                             Move move = Move(sq, moveIndex);
+                            move.Capture = position[moveIndex];
                             if(position[moveIndex] != 0){
                                 if(piece.hasDiffColor(curr, position[moveIndex] )){
+                                    
                                     some.push_back(move);
                                 }
                                 break;
@@ -281,8 +293,10 @@ std::vector<Move> Board::generateMoves(bool black){
                         for(int i = 1; i <= maxDist; i++){                  //go right down
                             int moveIndex = sq + i*movingOffsets[7];
                             Move move = Move(sq, moveIndex);
+                            move.Capture = position[moveIndex];
                             if(position[moveIndex] != 0){
                                 if(piece.hasDiffColor(curr, position[moveIndex])){
+                                    
                                     some.push_back(move);
                                 }
                                 break;
@@ -298,8 +312,10 @@ std::vector<Move> Board::generateMoves(bool black){
                         for(int i = 1; i <= maxDist; i++){                  //go left down
                             int moveIndex = sq + i*movingOffsets[5];
                             Move move = Move(sq, moveIndex);
+                            move.Capture = position[moveIndex];
                             if(position[moveIndex] != 0){
                                 if(piece.hasDiffColor(curr, position[moveIndex])){
+                                    
                                     some.push_back(move);
                                 }
                                 break;
@@ -316,6 +332,7 @@ std::vector<Move> Board::generateMoves(bool black){
                         for(int i = 1; i <= maxDist; i++){                  //go left up
                             int moveIndex = sq + i*movingOffsets[6];
                             Move move = Move(sq, moveIndex);
+                            move.Capture = position[moveIndex];
                             if(position[moveIndex] != 0){
                                 if(piece.hasDiffColor(curr, position[moveIndex] )){
                                     some.push_back(move);
@@ -324,7 +341,7 @@ std::vector<Move> Board::generateMoves(bool black){
                             }
                             some.push_back(move);
 
-                            if((moveIndex%8 == 7) || (moveIndex/8 == 0)){
+                            if((moveIndex%8 == 0) || (moveIndex/8 == 0)){
                                 break;
                             }
                         }
@@ -338,11 +355,90 @@ std::vector<Move> Board::generateMoves(bool black){
     return some;
 }
 
-std::vector<Move> Board::generateLegalMoves(bool black){
-    return generateMoves(black);
+std::vector<Move> Board::generateLegalMoves(bool black) {
+    std::vector<Move> moves = generateMoves(black);
     
+    for (int i = 0; i < moves.size(); ++i) {
+        makeMove(moves[i]);
+        
+        std::vector<Move> enemyMoves = generateMoves(!black);
+        bool kingCaptured = false;
+        for (const Move& enmv : enemyMoves) {
+            if ((position[enmv.targetSquare] & piece.pieceMask) == piece.king) {
+                kingCaptured = true;
+                break;
+            }
+        }
+        
+        if (kingCaptured) {
+            // Erase the move that leads to the king being captured
+            moves.erase(moves.begin() + i);
+            // Adjust the index to account for the erased element
+            --i;
+        }
+        
+        unmakeMove();
+    }
+    
+    return moves;
 }
 
+
+bool Board::makeMove(Move move){
+    bool black = !piece.isWhite(position[move.startingSquare]);
+    position[move.targetSquare] = position[move.startingSquare];
+    position[move.startingSquare] = 0;
+    movesPlayed.push_back(move);
+    
+    if(move.qCastle){
+        position[black? 3:59] = black?piece.blackRook: piece.whiteRook;
+        position[black? 0:56] = 0;
+    }
+    if(move.kCastle){
+        position[black? 5:61] = black? piece.blackRook: piece.whiteRook;
+        position[black? 7:63] = 0;
+    }
+    if(move.isProm){
+        position[move.targetSquare] = black? piece.blackQueen : piece.whiteQueen;
+    }
+    return true;
+}
+
+bool Board::unmakeMove(){
+    
+    if(movesPlayed.size() == 0){
+        return false;
+    }
+    Move play = movesPlayed[movesPlayed.size() - 1];
+    bool black = !piece.isWhite(position[play.targetSquare]);
+    movesPlayed.pop_back();
+
+
+    int pc = position[play.targetSquare];
+    position[play.targetSquare] = play.Capture; 
+
+    if(play.isProm){
+        position[play.startingSquare] = black ? piece.blackPawn : piece.whitePawn;
+    }else{
+        position[play.startingSquare] = pc;
+    }
+
+    if(play.qCastle){
+        position[black? 3:59] = 0;
+        position[black? 0:56] = black?piece.blackRook: piece.whiteRook;
+    }
+    if(play.kCastle){
+        position[black? 5:61] = 0;
+        position[black? 7:63] = black?piece.blackRook: piece.whiteRook;
+    }
+
+
+
+
+    return true;
+
+
+}
 
 
 bool Board::isSlidingPiece(int movingPiece){

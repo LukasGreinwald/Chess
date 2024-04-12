@@ -76,10 +76,10 @@ Window::Window(int size,const char *name,const char *pieceImg[16])
     mapSquaresToSize();
     sf::IntRect blank;
     for(int sq = 0; sq < 64; sq++){
-    if(board.position[sq] != 0){
-          
-         pieceSprites[sq].setTexture(pieceTextures[board.position[sq]], true);
-    }
+        if(board.position[sq] != 0){
+            
+            pieceSprites[sq].setTexture(pieceTextures[board.position[sq]], true);
+        }
     }
 
     mapPieces();
@@ -122,7 +122,8 @@ bool Window::display(){
             if(board.position[63] != board.piece.whiteRook){
                 board.WKingSideCastlingRights = false;
             }
-            std::vector<Move> legal = board.generateLegalMoves(black);    
+            std::vector<Move> legal = board.generateLegalMoves(black);  
+            
             switch(event.type){
                 case sf::Event::Closed:
                     window.close();
@@ -157,12 +158,7 @@ bool Window::display(){
                         startingPosition = sf::Vector2f(event.mouseButton.x, event.mouseButton.y);
                         dragPieceStartPosition = pieceSprites[indexPiece].getPosition();
                         isDragging = true;
-                        std::cout << "the legal moves are." << std::endl;
-                        //
-                        for(int i =0; i< legal.size(); i++){
-                            Move move = legal[i];
-                            std::cout << move.startingSquare << ", " << move.targetSquare << std::endl;
-                        }
+                        
                     }
                     break;
                 case sf::Event::MouseMoved:   
@@ -186,27 +182,17 @@ bool Window::display(){
                         bool assertLegalMove = findElement != legal.end();
                         if(assertLegalMove){
                             movePlayed = legal[findElement - legal.begin()];
-                            pieceSprites[newIndex] = pieceSprites[indexPiece];
-                            pieceSprites[newIndex].setPosition(sf::Vector2f(squareShape.left + newPosX * squares[0][0].getSize().x, squareShape.top + newPosY * squares[0][0].getSize().x));
-                            board.position[newIndex] = board.position[indexPiece];
-                            
-                            if(movePlayed.qCastle){
-                                pieceSprites[black? 3:59] = pieceSprites[black? 0:56];
-                                pieceSprites[black? 3:59].setPosition(sf::Vector2f(squareShape.left + (newPosX + 1) * squares[0][0].getSize().x, squareShape.top + newPosY * squares[0][0].getSize().x));
-                                board.position[black? 3:59] = board.piece.blackRook;
-                                board.position[black? 0:56] = 0;
+                            if(board.makeMove(movePlayed)){
+                                for(int sq = 0; sq < 64; sq++){
+                                    if(board.position[sq] != 0){
+                                        pieceSprites[sq].setTexture(pieceTextures[board.position[sq]], true);
+                                    }
+                                }
+                                mapPieces();
+                                black = !black;
                             }
-                            if(movePlayed.kCastle){
-                                pieceSprites[black? 5:61] = pieceSprites[black? 7:63];
-                                pieceSprites[black? 5:61].setPosition(sf::Vector2f(squareShape.left + (newPosX - 1) * squares[0][0].getSize().x, squareShape.top + newPosY * squares[0][0].getSize().x));
-                                board.position[black? 5:61] = board.piece.blackRook;
-                                board.position[black? 7:63] = 0;
-                                
-                                
-                            }
-                            board.position[indexPiece] = 0;
                             
-                            black = !black;
+                            
                         }else{
                             pieceSprites[indexPiece].setPosition(dragPieceStartPosition);
                         }
@@ -215,6 +201,20 @@ bool Window::display(){
                         
                     }
                     break;
+
+                case sf::Event::KeyPressed:
+                    if(event.key.code== sf::Keyboard::Left){
+                        if(board.unmakeMove()){
+                            for(int sq = 0; sq < 64; sq++){
+                                if(board.position[sq] != 0){
+                                    
+                                    pieceSprites[sq].setTexture(pieceTextures[board.position[sq]], true);
+                                }
+                            }
+                            mapPieces();
+                            black = !black;
+                        }
+                    }
 
             }
         }

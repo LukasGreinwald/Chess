@@ -18,6 +18,7 @@ struct Move{
     bool bProm = false;
     bool kProm = false;
     bool rProm = false;
+    int Capture = 0;
 
     Move(int starting, int target){
         startingSquare = starting;
@@ -69,7 +70,10 @@ public:
     std::vector<Move> generateMoves(bool black = false);
     unsigned short calculateSquarestoEdge(int currPosition);
 
-
+    bool makeMove(Move move);
+    bool unmakeMove();
+    std::vector<Move> movesPlayed;
+    int moveCount;
     bool fenToBoard(char* fenString, int *position);
     
 };
