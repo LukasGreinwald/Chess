@@ -18,6 +18,7 @@ struct Move{
     bool bProm = false;
     bool kProm = false;
     bool rProm = false;
+    bool enPassant = false;
     int Capture = 0;
 
     Move(int starting, int target){

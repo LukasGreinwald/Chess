@@ -102,26 +102,7 @@ bool Window::display(){
 
         sf::Event event;
         while(window.pollEvent(event)){
-            if(board.position[4] != board.piece.blackKing){
-                board.BKingSideCastlingRights = false;
-                board.BQueenSideCastlingRights = false;
-            }
-            if(board.position[0] != board.piece.blackRook){
-                board.BQueenSideCastlingRights = false;
-            }
-            if(board.position[7] != board.piece.blackRook){
-                board.BKingSideCastlingRights = false;
-            }
-            if(board.position[60] != board.piece.whiteKing){
-                board.WKingSideCastlingRights = false;
-                board.WQueenSideCastlingRights = false;
-            }
-            if(board.position[56] != board.piece.blackRook){
-                board.WQueenSideCastlingRights = false;
-            }
-            if(board.position[63] != board.piece.whiteRook){
-                board.WKingSideCastlingRights = false;
-            }
+            
             std::vector<Move> legal = board.generateLegalMoves(black);  
             
             switch(event.type){
@@ -176,6 +157,13 @@ bool Window::display(){
                         isInBound = newPosX < 8 && newPosY < 8 && newPosX >= 0 && newPosY >= 0;
                         
                         Move movePlayed = Move(indexPiece, newIndex);
+                        for(int i = 0; i< legal.size(); i++){
+                            if((board.position[legal[i].startingSquare] & board.piece.pieceMask) == board.piece.king ){
+                                std::cout << legal[i].startingSquare << " : " << legal[i].targetSquare << std::endl;
+                            }
+                        }
+
+                        std::cout << std::endl;
                         
                         
                         auto findElement = std::find(legal.begin(), legal.end(), movePlayed);

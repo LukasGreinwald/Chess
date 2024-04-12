@@ -91,6 +91,30 @@ std::vector<Move> Board::generateMoves(bool black){
                             some.push_back(move);
                         }
                     }
+
+                    if(movesPlayed.size() != 0){
+                        Move last = movesPlayed[movesPlayed.size() - 1];
+                        bool checkCondition = (position[last.targetSquare] == piece.whitePawn) 
+                                            && (std::abs(last.targetSquare - last.startingSquare) == 16);
+                        
+                        bool leftEnPassant = ((sq % 8)!= 0) && ((sq - 1) == last.targetSquare);
+                        bool rightEnPassant = ((sq % 8)!= 7) && ((sq + 1) == last.targetSquare);
+
+                        if(checkCondition){
+                            if(leftEnPassant){
+                                Move move = Move(sq, (sq + 7));
+                                move.enPassant = true;
+                                
+                                some.push_back(move);
+                            }
+                            if(rightEnPassant){
+                                Move move = Move(sq, (sq + 9));
+                                move.enPassant = true;
+                                
+                                some.push_back(move);
+                            }
+                        }                    
+                    }
                 }else{
                     int moveIndex = sq - 8; 
                     
@@ -129,6 +153,30 @@ std::vector<Move> Board::generateMoves(bool black){
                             Move move = Move(sq, moveIndex);
                             some.push_back(move);
                         }
+                    }
+
+                    if(movesPlayed.size() != 0){
+                        Move last = movesPlayed[movesPlayed.size() - 1];
+                        bool checkCondition = (position[last.targetSquare] == piece.blackPawn) 
+                                            && (std::abs(last.targetSquare - last.startingSquare) == 16);
+                        
+                        bool leftEnPassant = ((sq % 8)!= 0) && ((sq - 1) == last.targetSquare);
+                        bool rightEnPassant = ((sq % 8)!= 7) && ((sq + 1) == last.targetSquare);
+
+                        if(checkCondition){
+                            if(leftEnPassant){
+                                Move move = Move(sq, (sq - 9));
+                                move.enPassant = true;
+                                
+                                some.push_back(move);
+                            }
+                            if(rightEnPassant){
+                                Move move = Move(sq, (sq - 7));
+                                move.enPassant = true;
+                                
+                                some.push_back(move);
+                            }
+                        }                    
                     }
                 }
             }
@@ -379,6 +427,8 @@ std::vector<Move> Board::generateLegalMoves(bool black) {
         
         unmakeMove();
     }
+
+    
     
     return moves;
 }
@@ -400,6 +450,10 @@ bool Board::makeMove(Move move){
     }
     if(move.isProm){
         position[move.targetSquare] = black? piece.blackQueen : piece.whiteQueen;
+    }
+
+    if(move.enPassant){
+        position[black? (move.targetSquare -8): (move.targetSquare + 8)] = 0;
     }
     return true;
 }
@@ -432,7 +486,9 @@ bool Board::unmakeMove(){
         position[black? 7:63] = black?piece.blackRook: piece.whiteRook;
     }
 
-
+    if(play.enPassant){
+        position[black?(play.targetSquare - 8 ) : (play.targetSquare +8)] = black ? piece.whitePawn : piece.blackPawn;
+    }
 
 
     return true;
