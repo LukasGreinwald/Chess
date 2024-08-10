@@ -3,8 +3,8 @@
 
 #include <SFML/Graphics.hpp>
 #include <SFML/System.hpp>
-#include "board.h"
-
+#include <SFML/Window.hpp>
+#include "board.hpp"
 
 class Window
 {
@@ -19,18 +19,14 @@ private:
     sf::Sprite pieceSprites[64];
     sf::Texture pieceTextures[16];
 
-
-
     void drawBoard();
     void mapSquaresToSize();
     void drawPieces();
     void mapPieces();
-    
+
 public:
     Window(int size, const char *name, const char *pieceImg[16]);
     bool display();
 };
 
 #endif
-
-

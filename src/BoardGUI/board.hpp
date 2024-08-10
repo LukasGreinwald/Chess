@@ -2,13 +2,13 @@
 #define BOARD_H
 #include <SFML/Window.hpp>
 #include <SFML/Graphics.hpp>
-#include "piece.h"
+#include "piece.hpp"
 #include <stdio.h>
 #include <iostream>
 #include <vector>
 
-
-struct Move{
+struct Move
+{
     int startingSquare, targetSquare;
     bool qCastle = false;
     bool kCastle = false;
@@ -21,18 +21,21 @@ struct Move{
     bool enPassant = false;
     int Capture = 0;
 
-    Move(int starting, int target){
+    Move(int starting, int target)
+    {
         startingSquare = starting;
         targetSquare = target;
     }
-    bool operator==(const Move& first){
+    bool operator==(const Move &first)
+    {
         bool start = startingSquare == first.startingSquare;
         bool end = targetSquare == first.targetSquare;
 
         return start && end;
     }
 
-    bool operator!=(const Move& comp){
+    bool operator!=(const Move &comp)
+    {
         bool start = startingSquare != comp.startingSquare;
         bool end = targetSquare != comp.targetSquare;
 
@@ -54,17 +57,14 @@ public:
         0, 0, 0, 0, 0, 0, 0, 0,
         0, 0, 0, 0, 0, 0, 0, 0,
         9, 9, 9, 9, 9, 9, 9, 9,
-        12,11,10,13,14,10,11,12
-    };
+        12, 11, 10, 13, 14, 10, 11, 12};
 
-    
     Board();
 
     bool WQueenSideCastlingRights = true;
     bool WKingSideCastlingRights = true;
     bool BQueenSideCastlingRights = true;
     bool BKingSideCastlingRights = true;
-
 
     bool isSlidingPiece(int type);
     std::vector<Move> generateLegalMoves(bool black = false);
@@ -75,8 +75,7 @@ public:
     bool unmakeMove();
     std::vector<Move> movesPlayed;
     int moveCount;
-    bool fenToBoard(char* fenString, int *position);
-    
+    bool fenToBoard(char *fenString, int *position);
 };
 
 #endif
