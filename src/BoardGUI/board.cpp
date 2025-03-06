@@ -464,13 +464,19 @@ std::vector<Move> Board::generateMoves(bool black)
 std::vector<Move> Board::generateLegalMoves(bool black)
 {
     std::vector<Move> moves = generateMoves(black);
-
     for (int i = 0; i < moves.size(); ++i)
     {
         makeMove(moves[i]);
 
         std::vector<Move> enemyMoves = generateMoves(!black);
         bool kingCaptured = false;
+
+        int kingSquare = black ? 4 : 60;
+        int kcSquare = black ? 5 : 61;
+
+        int qcSquare1 = black ? 3 : 59;
+        int qcSquare2 = black ? 2 : 58;
+
         for (const Move &enmv : enemyMoves)
         {
             if ((position[enmv.targetSquare] & piece.pieceMask) == piece.king)
@@ -478,6 +484,23 @@ std::vector<Move> Board::generateLegalMoves(bool black)
                 kingCaptured = true;
                 break;
             }
+
+            if ((moves[i].kCastle || moves[i].qCastle) && (enmv.targetSquare == kingSquare))
+            {
+                kingCaptured = true;
+                break;
+            } 
+            if ((moves[i].kCastle) && (enmv.targetSquare == kcSquare))
+            {
+                kingCaptured = true;
+                break;
+            }
+            if ((moves[i].qCastle) && (enmv.targetSquare == qcSquare1 || enmv.targetSquare == qcSquare2))
+            {
+                kingCaptured = true;
+                break;
+            }
+
         }
 
         if (kingCaptured)
@@ -505,11 +528,15 @@ bool Board::makeMove(Move move)
     {
         position[black ? 3 : 59] = black ? piece.blackRook : piece.whiteRook;
         position[black ? 0 : 56] = 0;
+        BQueenSideCastlingRights = black ? false : BQueenSideCastlingRights;
+        WQueenSideCastlingRights = black ? WQueenSideCastlingRights : false;
     }
     if (move.kCastle)
     {
         position[black ? 5 : 61] = black ? piece.blackRook : piece.whiteRook;
         position[black ? 7 : 63] = 0;
+        BKingSideCastlingRights = black ? false : BKingSideCastlingRights;
+        WKingSideCastlingRights = black ? WKingSideCastlingRights : false;
     }
     if (move.isProm)
     {
@@ -550,11 +577,18 @@ bool Board::unmakeMove()
     {
         position[black ? 3 : 59] = 0;
         position[black ? 0 : 56] = black ? piece.blackRook : piece.whiteRook;
+        
+        WQueenSideCastlingRights = black ? WQueenSideCastlingRights : true;
+        BQueenSideCastlingRights = black ? true : BKingSideCastlingRights;
+        
     }
     if (play.kCastle)
     {
         position[black ? 5 : 61] = 0;
         position[black ? 7 : 63] = black ? piece.blackRook : piece.whiteRook;
+
+        WKingSideCastlingRights = black ? WKingSideCastlingRights : true; 
+        BKingSideCastlingRights = black ? true : BKingSideCastlingRights;
     }
 
     if (play.enPassant)
