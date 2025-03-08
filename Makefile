@@ -10,11 +10,11 @@ SRC_DIRS     := $(shell find src -type d)
 
 SFML_PATH 	 := ../lib/SFML/SFML
 
-COMP_FLAGS 	 := -Wall -Wextra -I$(SFML_PATH)/include
+COMPILER_FLAGS_CPP 	 := -Wall -Wextra -I$(SFML_PATH)/include -std=c++23
 
 LINKER_FLAGS := -L$(SFML_PATH)/lib -lsfml-system -lsfml-graphics -lsfml-window
 
-COMPILER_CPP := $(shell command -v g++ || command -v clang++)
+COMPILER_CPP := $(shell command -v clang++ || command -v g++)
 
 ifeq ($(strip $(COMPILER_CPP)),)
   $(error Neither GNU's C++ compiler, nor LLVM's clang++ compiler ar available. Build failed!)

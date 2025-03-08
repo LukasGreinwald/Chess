@@ -1,10 +1,5 @@
 #include "board.hpp"
-#include <SFML/Window.hpp>
-#include <SFML/Graphics.hpp>
-#include <stdio.h>
-#include <iostream>
-#include <vector>
-
+#include <ranges>
 int const Board::movingOffsets[8] = {-1, 1, -8, 8, -7, 7, -9, 9};
 int const Board::knightOffsets[8] = {-10, 10, 6, -6, -15, 15, 17, -17};
 
@@ -464,7 +459,7 @@ std::vector<Move> Board::generateMoves(bool black)
 std::vector<Move> Board::generateLegalMoves(bool black)
 {
     std::vector<Move> moves = generateMoves(black);
-    for (int i = 0; i < moves.size(); ++i)
+    for (size_t i = 0; i < moves.size(); ++i)
     {
         makeMove(moves[i]);
 
@@ -612,9 +607,164 @@ bool Board::isSlidingPiece(int movingPiece)
     }
 }
 
-bool Board::fenToBoard(char *fenString, int *position)
+int Board::fenToBoard(const std::string_view fenStr)
 {
-    return false;
+    using std::operator""sv;
+    auto str = fenStr | std::views::split(' ');
+
+    int i = 0; 
+    for (auto group : str) {
+        std::cout << std::string_view(group.begin(), group.end()) << "\n";
+        switch (i)
+        {
+        case 0:
+        {
+            constexpr auto row_delim{"/"sv};
+            int j = 0; 
+            for (const auto row : std::views::split(group, row_delim)) {
+                
+                int start = 8*j;
+                int k = 0; 
+                for (auto ch : row) {
+                    std::cout << "digit: " << ch << std::endl;
+                    if (std::isdigit(ch)) {
+                        
+                        for (int i = 0; i < (ch - 48); i++, k++) {
+                            position[start + k] = 0; 
+                        }
+                    } else {
+                        switch(ch) {
+                            case 'k':
+                                position[start + k] = piece.blackKing;
+                                break;
+                            case 'K':
+                                std::cout << "white king at: " << start + k << std::endl;
+                                position[start + k] = piece.whiteKing;
+                                
+                                break;
+                            case 'q':
+                                position[start + k] = piece.blackQueen;
+                                break;
+                            case 'Q':
+                                position[start + k] = piece.whiteQueen;
+                                break;
+                            case 'r':
+                                position[start + k] = piece.blackRook;
+                                break;
+                            case 'R':
+                                position[start + k] = piece.whiteRook;
+                                break;
+                            case 'b':
+                                position[start + k] = piece.blackBishop;
+                                break;
+                            case 'B':
+                                position[start + k] = piece.whiteBishop;
+                                break;
+                            case 'n':
+                                position[start + k] = piece.blackKnight;
+                                break;
+                            case 'N':
+                                position[start + k] = piece.whiteKnight;
+                                break;
+                            case 'p':
+                                position[start + k] = piece.blackPawn;
+                                break;
+                            case 'P':
+                                position[start + k] = piece.whitePawn;
+                                break;
+                            default:
+                                return FEN_FIRST_GROUP;
+                        }
+                        ++k;
+                    }
+
+                }
+                ++j;
+            }
+            if (j != 8) return FEN_FIRST_GROUP;
+            ++i;
+            break;
+        }
+        case 1:
+        {
+            std::string_view value(group.begin(), group.end());
+            if (value == "w") {
+                isWhiteToMove = true;
+            } else if (value == "b") {
+                isWhiteToMove = false;
+            } else {
+                return FEN_SEC_GROUP;
+            }
+            ++i;
+            break;
+        }
+        case 2: 
+        {
+            std::string_view value(group.begin(), group.end());
+            if (value == "-") {
+                WQueenSideCastlingRights = false;
+                WKingSideCastlingRights = false;
+                BQueenSideCastlingRights = false;
+                BKingSideCastlingRights = false;
+            } else if (value.size() != 4) {
+                return FEN_THIRD_GROUP;
+            } else {
+                WKingSideCastlingRights = value[0] == 'K';
+                WQueenSideCastlingRights = value[1] == 'Q';
+                BKingSideCastlingRights = value[2] == 'k';
+                BQueenSideCastlingRights = value[3] == 'q';
+            }
+            ++i;
+            break;
+        }
+        case 3:
+        {
+            std::string_view value(group.begin(), group.end());
+            if (value == "-") {
+            } else if (strlen(group.data()) != 2) {
+                return FEN_FOURTH_GROUP;
+            } else {
+                // we add this move to the movesPlayed vector
+                // because int the move calculation function we check if 
+                // an en passant move is possible by checking the last move
+                int enPassantSquare = (group.data()[0] - 97) + (group.data()[1] - 49) * 8;
+                int start = isWhiteToMove ? enPassantSquare + 8 : enPassantSquare - 8;
+                int end = isWhiteToMove ? enPassantSquare - 8 : enPassantSquare + 8;    
+                movesPlayed.push_back(Move(start, end));
+            }
+            
+            ++i;
+            break;
+        }
+        case 4:
+        {
+            std::string_view value(group.begin(), group.end());
+            if (value == "-") {
+                fiftyMoveRule = 0;
+            } else {
+                auto res = std::from_chars(group.begin(), group.end(), fiftyMoveRule);
+                if (res.ec != std::errc()) {
+                    return FEN_FIFTH_GROUP;
+                }
+            }
+            ++i;
+            break;
+        }
+        case 5:
+            // we don't need to do anything with this group
+            // as this just gives the number of moves played
+            
+            ++i;
+            break;
+        default:
+            std::cout << "i: " << i << std::endl;
+            return FEN_GROUPS_SIZE;
+        }
+    }
+    std::cout << "i: " << i << std::endl;
+    if (i != 6) return FEN_GROUPS_SIZE;
+
+    return FEN_SUCCESS;
 }
 
 Board::Board()

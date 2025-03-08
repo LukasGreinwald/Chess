@@ -55,6 +55,46 @@ void Window::mapPieces()
     }
 }
 
+void Window::setTextures()
+{ 
+    for (int sq = 0; sq < 64; sq++)
+    {
+        if (board.position[sq] != 0)
+        {
+            pieceSprites[sq].setTexture(pieceTextures[board.position[sq]], true);
+        }
+    }
+}
+
+bool Window::loadFen(std::string_view fen)
+{
+    switch(board.fenToBoard(fen)) {
+        case Board::FEN_GROUPS_SIZE:
+            std::cerr << "FEN_GROUPS_SIZE" << std::endl;
+            return false;
+        case Board::FEN_FIRST_GROUP:
+            std::cerr << "FEN_FIRST_GROUP" << std::endl;
+            return false;
+        case Board::FEN_SEC_GROUP:
+            std::cerr << "FEN_SEC_GROUP" << std::endl;
+            return false;
+        case Board::FEN_THIRD_GROUP:
+            std::cerr << "FEN_THIRD_GROUP" << std::endl;
+            return false;
+        case Board::FEN_FOURTH_GROUP:
+            std::cerr << "FEN_FOURTH_GROUP" << std::endl;
+            return false;
+        case Board::FEN_FIFTH_GROUP:
+            std::cerr << "FEN_FIFTH_GROUP" << std::endl;
+            return false;
+        case Board::FEN_SIXTH_GROUP:
+            std::cerr << "FEN_SIXTH_GROUP" << std::endl;
+            return false;
+        default:    
+            return true;
+    }
+}
+
 Window::Window(int size, const char *name, const char *pieceImg[16])
 {
     squareColors[0] = sf::Color(255, 228, 196, 155);
@@ -85,14 +125,7 @@ Window::Window(int size, const char *name, const char *pieceImg[16])
     }
     mapSquaresToSize();
     sf::IntRect blank;
-    for (int sq = 0; sq < 64; sq++)
-    {
-        if (board.position[sq] != 0)
-        {
-
-            pieceSprites[sq].setTexture(pieceTextures[board.position[sq]], true);
-        }
-    }
+    setTextures();
 
     mapPieces();
     window.create(sf::VideoMode(size, size), name);
@@ -100,12 +133,46 @@ Window::Window(int size, const char *name, const char *pieceImg[16])
 
 bool Window::display()
 {
+    std::cout << "Do you want to add a FEN string? (y/n)" << std::endl;
+    char answer;
+    std::cin >> answer;
+
+    std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+    if (answer == 'y')
+    {
+        std::string fen;
+        std::cout << "Enter the FEN string: ";
+        getline(std::cin, fen);
+        std::cout << fen << std::endl;
+        if (loadFen(fen))
+        {
+            std::cout << "FEN loaded succesfully" << std::endl;
+            setTextures();
+            mapPieces();
+            
+        }
+        else
+        {
+            std::cout << "FEN not loaded" << std::endl;
+        }
+
+    }
+    for (size_t i = 0; i < 8; i++)
+    {
+        for (size_t j = 0; j < 8; j++)
+        {
+            std::cout << board.position[i * 8 + j] << " ";
+        }
+        std::cout << std::endl;
+    }
+
+
     int indexPiece, posX, posY;
     bool isDragging = false;
     bool isInBound = false;
     sf::Vector2f startingPosition;
     sf::Vector2f dragPieceStartPosition;
-    bool black = false;
+    bool black = !board.isWhiteToMove;
 
     while (window.isOpen())
     {
@@ -173,7 +240,7 @@ bool Window::display()
                     isInBound = newPosX < 8 && newPosY < 8 && newPosX >= 0 && newPosY >= 0;
 
                     Move movePlayed = Move(indexPiece, newIndex);
-                    for (int i = 0; i < legal.size(); i++)
+                    for (size_t i = 0; i < legal.size(); i++)
                     {
                         if ((board.position[legal[i].startingSquare] & board.piece.pieceMask) == board.piece.king)
                         {
@@ -190,13 +257,7 @@ bool Window::display()
                         movePlayed = legal[findElement - legal.begin()];
                         if (board.makeMove(movePlayed))
                         {
-                            for (int sq = 0; sq < 64; sq++)
-                            {
-                                if (board.position[sq] != 0)
-                                {
-                                    pieceSprites[sq].setTexture(pieceTextures[board.position[sq]], true);
-                                }
-                            }
+                            setTextures();
                             mapPieces();
                             black = !black;
                         }
@@ -226,6 +287,8 @@ bool Window::display()
                         black = !black;
                     }
                 }
+            default:
+                break;
             }
         }
 

@@ -1,11 +1,17 @@
 #ifndef BOARD_H
 #define BOARD_H
+
 #include <SFML/Window.hpp>
 #include <SFML/Graphics.hpp>
 #include "piece.hpp"
 #include <stdio.h>
 #include <iostream>
 #include <vector>
+#include <string_view>
+#include <ranges>
+#include <cctype>
+#include <cstring>
+#include <charconv>
 
 struct Move
 {
@@ -60,12 +66,14 @@ public:
         12, 11, 10, 13, 14, 10, 11, 12};
 
     Board();
-
+    
+    int fiftyMoveRule = 0;
     bool WQueenSideCastlingRights = true;
     bool WKingSideCastlingRights = true;
     bool BQueenSideCastlingRights = true;
     bool BKingSideCastlingRights = true;
 
+    bool isWhiteToMove = true;
     bool isSlidingPiece(int type);
     std::vector<Move> generateLegalMoves(bool black = false);
     std::vector<Move> generateMoves(bool black = false);
@@ -75,7 +83,16 @@ public:
     bool unmakeMove();
     std::vector<Move> movesPlayed;
     int moveCount;
-    bool fenToBoard(char *fenString, int *position);
+    int fenToBoard(const std::string_view fenStr);
+
+    static const int FEN_SUCCESS = 0;
+    static const int FEN_GROUPS_SIZE = 1;
+    static const int FEN_FIRST_GROUP = 2;
+    static const int FEN_SEC_GROUP = 3;
+    static const int FEN_THIRD_GROUP = 4;
+    static const int FEN_FOURTH_GROUP = 5;
+    static const int FEN_FIFTH_GROUP = 6;
+    static const int FEN_SIXTH_GROUP = 7;
 };
 
 #endif

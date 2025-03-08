@@ -21,6 +21,8 @@ private:
     void mapSquaresToSize();
     void drawPieces();
     void mapPieces();
+    void setTextures();
+    bool loadFen(std::string_view fen);
 
 public:
     Window(int size, const char *name, const char *pieceImg[16]);
