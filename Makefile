@@ -1,6 +1,6 @@
-SOURCES_CPP  := $(shell find * -name '*.cpp')
+SOURCES_CPP  := $(shell find * -wholename 'src/BoardGUI/*.cpp')
 
-HEADERS_CPP  := $(shell find * -name '*.hpp')	
+HEADERS_CPP  := $(shell find * -wholename 'src/BoardGUI/*.hpp')	
 
 BUILD_DIR    := build
 OUTPUT 		 := board
