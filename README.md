@@ -27,5 +27,6 @@ Assuming you have a local SFML build in `../lib/SFML/SFML/`, use the included `M
 make        # Build the project
 make run    # Run with LD_LIBRARY_PATH set automatically
 make clean  # Clean build artifacts
+````
 
 <img width="1850" height="1483" alt="image" src="https://github.com/user-attachments/assets/ecdd1ed1-50e3-4a9f-9394-237fccfbe00f" />
