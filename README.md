@@ -1,4 +1,4 @@
-### Basic Chess App 
+##### Basic Chess App 
 Build with C++ and SFMl 2.6.1 
 Implemented all the basic rules (no 50 moves rule)
 One can load fen-Strings to start from different positions
