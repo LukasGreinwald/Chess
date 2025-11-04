@@ -12,7 +12,7 @@ SFML_PATH 	 := ../lib/SFML/SFML
 
 COMPILER_FLAGS_CPP 	 := -Wall -Wextra -I$(SFML_PATH)/include -std=c++23
 
-LINKER_FLAGS := -L$(SFML_PATH)/lib -lsfml-system -lsfml-graphics -lsfml-window
+LINKER_FLAGS := -L$(SFML_PATH)/lib -Wl,-rpath=$(SFML_PATH)/lib -lsfml-system -lsfml-graphics -lsfml-window
 
 COMPILER_CPP := $(shell command -v clang++ || command -v g++)
 

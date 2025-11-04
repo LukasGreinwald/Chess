@@ -3,6 +3,7 @@
 
 #include "board.hpp"
 #include <SFML/System.hpp>
+#include <limits>
 
 class Window {
 private:
