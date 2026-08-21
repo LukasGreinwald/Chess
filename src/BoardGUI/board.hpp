@@ -26,6 +26,10 @@ struct Move {
   bool enPassant = false;
   int Capture = 0;
 
+  // Castling rights as they were *before* this move was made, captured by
+  // makeMove so unmakeMove can restore them exactly.
+  bool savedWK = true, savedWQ = true, savedBK = true, savedBQ = true;
+
   Move(int starting, int target) {
     startingSquare = starting;
     targetSquare = target;
@@ -68,6 +72,15 @@ public:
   std::vector<Move> generateLegalMoves(bool black = false);
   std::vector<Move> generateMoves(bool black = false);
   unsigned short calculateSquarestoEdge(int currPosition);
+
+  // True if any piece of the given color attacks `square`. Handles pawn
+  // diagonals, so it is correct even when `square` is empty (e.g. the squares
+  // a king passes over while castling).
+  bool isSquareAttacked(int square, bool byBlack);
+
+  // Revoke the castling rights tied to a king- or rook-home square whenever
+  // that square is vacated or its occupant captured.
+  void revokeCastlingRights(int square);
 
   bool makeMove(Move move);
   bool unmakeMove();

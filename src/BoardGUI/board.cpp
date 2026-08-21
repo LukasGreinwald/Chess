@@ -407,39 +407,30 @@ std::vector<Move> Board::generateLegalMoves(bool black) {
   for (size_t i = 0; i < moves.size(); ++i) {
     makeMove(moves[i]);
 
-    std::vector<Move> enemyMoves = generateMoves(!black);
-    bool kingCaptured = false;
+    bool illegal = false;
 
-    int kingSquare = black ? 4 : 60;
-    int kcSquare = black ? 5 : 61;
-
-    int qcSquare1 = black ? 3 : 59;
-    int qcSquare2 = black ? 2 : 58;
-
-    for (const Move &enmv : enemyMoves) {
-      if ((position[enmv.targetSquare] & piece.pieceMask) == piece.king) {
-        kingCaptured = true;
-        break;
-      }
-
-      if ((moves[i].kCastle || moves[i].qCastle) &&
-          (enmv.targetSquare == kingSquare)) {
-        kingCaptured = true;
-        break;
-      }
-      if ((moves[i].kCastle) && (enmv.targetSquare == kcSquare)) {
-        kingCaptured = true;
-        break;
-      }
-      if ((moves[i].qCastle) &&
-          (enmv.targetSquare == qcSquare1 || enmv.targetSquare == qcSquare2)) {
-        kingCaptured = true;
-        break;
+    // A move is illegal if it leaves our own king in check.
+    for (int sq = 0; sq < 64 && !illegal; sq++) {
+      if ((position[sq] & piece.pieceMask) == piece.king &&
+          piece.isWhite(position[sq]) != black) {
+        illegal = isSquareAttacked(sq, !black);
       }
     }
 
-    if (kingCaptured) {
-      // Erase the move that leads to the king being captured
+    // Castling additionally forbids the king from starting in, or passing
+    // through, an attacked square (the destination is covered by the check
+    // above, since the king now sits there). These squares are empty after the
+    // move, so isSquareAttacked (which knows pawn diagonals) is required.
+    if (!illegal && (moves[i].kCastle || moves[i].qCastle)) {
+      int kingStart = black ? 4 : 60;
+      int transit =
+          moves[i].kCastle ? (black ? 5 : 61) : (black ? 3 : 59);
+      illegal = isSquareAttacked(kingStart, !black) ||
+                isSquareAttacked(transit, !black);
+    }
+
+    if (illegal) {
+      // Erase the move that leaves the king in check
       moves.erase(moves.begin() + i);
       // Adjust the index to account for the erased element
       --i;
@@ -451,8 +442,128 @@ std::vector<Move> Board::generateLegalMoves(bool black) {
   return moves;
 }
 
+bool Board::isSquareAttacked(int square, bool byBlack) {
+  int file = square % 8;
+  int rank = square / 8;
+  bool attackerIsWhite = !byBlack;
+
+  auto isEnemy = [&](int idx) {
+    return position[idx] != 0 &&
+           piece.isWhite(position[idx]) == attackerIsWhite;
+  };
+  auto typeAt = [&](int idx) { return position[idx] & piece.pieceMask; };
+
+  // Pawn attacks: a pawn attacks the two squares diagonally "ahead" of it, so
+  // the squares that attack `square` are the two diagonals on the pawn's side.
+  if (byBlack) {
+    if (rank > 0 && file > 0 && position[square - 9] == piece.blackPawn)
+      return true;
+    if (rank > 0 && file < 7 && position[square - 7] == piece.blackPawn)
+      return true;
+  } else {
+    if (rank < 7 && file > 0 && position[square + 7] == piece.whitePawn)
+      return true;
+    if (rank < 7 && file < 7 && position[square + 9] == piece.whitePawn)
+      return true;
+  }
+
+  // Knight attacks
+  static const int knightDelta[8][2] = {{-2, -1}, {-2, 1}, {-1, -2}, {-1, 2},
+                                        {1, -2},  {1, 2},  {2, -1},  {2, 1}};
+  for (const auto &d : knightDelta) {
+    int r = rank + d[0], f = file + d[1];
+    if (r >= 0 && r < 8 && f >= 0 && f < 8) {
+      int idx = r * 8 + f;
+      if (isEnemy(idx) && typeAt(idx) == piece.knight)
+        return true;
+    }
+  }
+
+  // King attacks (adjacent squares)
+  for (int dr = -1; dr <= 1; dr++) {
+    for (int df = -1; df <= 1; df++) {
+      if (dr == 0 && df == 0)
+        continue;
+      int r = rank + dr, f = file + df;
+      if (r >= 0 && r < 8 && f >= 0 && f < 8) {
+        int idx = r * 8 + f;
+        if (isEnemy(idx) && typeAt(idx) == piece.king)
+          return true;
+      }
+    }
+  }
+
+  // Sliding attacks: rays until the first blocker; attacked if that blocker is
+  // an enemy rook/queen (orthogonal) or bishop/queen (diagonal).
+  static const int ortho[4][2] = {{-1, 0}, {1, 0}, {0, -1}, {0, 1}};
+  for (const auto &d : ortho) {
+    int r = rank + d[0], f = file + d[1];
+    while (r >= 0 && r < 8 && f >= 0 && f < 8) {
+      int idx = r * 8 + f;
+      if (position[idx] != 0) {
+        if (isEnemy(idx) &&
+            (typeAt(idx) == piece.rook || typeAt(idx) == piece.queen))
+          return true;
+        break;
+      }
+      r += d[0];
+      f += d[1];
+    }
+  }
+  static const int diag[4][2] = {{-1, -1}, {-1, 1}, {1, -1}, {1, 1}};
+  for (const auto &d : diag) {
+    int r = rank + d[0], f = file + d[1];
+    while (r >= 0 && r < 8 && f >= 0 && f < 8) {
+      int idx = r * 8 + f;
+      if (position[idx] != 0) {
+        if (isEnemy(idx) &&
+            (typeAt(idx) == piece.bishop || typeAt(idx) == piece.queen))
+          return true;
+        break;
+      }
+      r += d[0];
+      f += d[1];
+    }
+  }
+
+  return false;
+}
+
+void Board::revokeCastlingRights(int square) {
+  switch (square) {
+  case 60: // e1: white king moved (or was captured) -> lose both white rights
+    WKingSideCastlingRights = false;
+    WQueenSideCastlingRights = false;
+    break;
+  case 4: // e8: black king
+    BKingSideCastlingRights = false;
+    BQueenSideCastlingRights = false;
+    break;
+  case 56: // a1: white queenside rook
+    WQueenSideCastlingRights = false;
+    break;
+  case 63: // h1: white kingside rook
+    WKingSideCastlingRights = false;
+    break;
+  case 0: // a8: black queenside rook
+    BQueenSideCastlingRights = false;
+    break;
+  case 7: // h8: black kingside rook
+    BKingSideCastlingRights = false;
+    break;
+  }
+}
+
 bool Board::makeMove(Move move) {
   bool black = !piece.isWhite(position[move.startingSquare]);
+
+  // Snapshot castling rights before this move alters them so unmakeMove can
+  // restore them exactly.
+  move.savedWK = WKingSideCastlingRights;
+  move.savedWQ = WQueenSideCastlingRights;
+  move.savedBK = BKingSideCastlingRights;
+  move.savedBQ = BQueenSideCastlingRights;
+
   position[move.targetSquare] = position[move.startingSquare];
   position[move.startingSquare] = 0;
   movesPlayed.push_back(move);
@@ -460,14 +571,10 @@ bool Board::makeMove(Move move) {
   if (move.qCastle) {
     position[black ? 3 : 59] = black ? piece.blackRook : piece.whiteRook;
     position[black ? 0 : 56] = 0;
-    BQueenSideCastlingRights = black ? false : BQueenSideCastlingRights;
-    WQueenSideCastlingRights = black ? WQueenSideCastlingRights : false;
   }
   if (move.kCastle) {
     position[black ? 5 : 61] = black ? piece.blackRook : piece.whiteRook;
     position[black ? 7 : 63] = 0;
-    BKingSideCastlingRights = black ? false : BKingSideCastlingRights;
-    WKingSideCastlingRights = black ? WKingSideCastlingRights : false;
   }
   if (move.isProm) {
     position[move.targetSquare] = black ? piece.blackQueen : piece.whiteQueen;
@@ -476,6 +583,12 @@ bool Board::makeMove(Move move) {
   if (move.enPassant) {
     position[black ? (move.targetSquare - 8) : (move.targetSquare + 8)] = 0;
   }
+
+  // Any king or rook leaving its home square (start), and any rook captured on
+  // its home square (target), forfeits the corresponding castling right.
+  revokeCastlingRights(move.startingSquare);
+  revokeCastlingRights(move.targetSquare);
+
   return true;
 }
 
@@ -500,22 +613,22 @@ bool Board::unmakeMove() {
   if (play.qCastle) {
     position[black ? 3 : 59] = 0;
     position[black ? 0 : 56] = black ? piece.blackRook : piece.whiteRook;
-
-    WQueenSideCastlingRights = black ? WQueenSideCastlingRights : true;
-    BQueenSideCastlingRights = black ? true : BKingSideCastlingRights;
   }
   if (play.kCastle) {
     position[black ? 5 : 61] = 0;
     position[black ? 7 : 63] = black ? piece.blackRook : piece.whiteRook;
-
-    WKingSideCastlingRights = black ? WKingSideCastlingRights : true;
-    BKingSideCastlingRights = black ? true : BKingSideCastlingRights;
   }
 
   if (play.enPassant) {
     position[black ? (play.targetSquare - 8) : (play.targetSquare + 8)] =
         black ? piece.whitePawn : piece.blackPawn;
   }
+
+  // Restore castling rights to their exact pre-move state.
+  WKingSideCastlingRights = play.savedWK;
+  WQueenSideCastlingRights = play.savedWQ;
+  BKingSideCastlingRights = play.savedBK;
+  BQueenSideCastlingRights = play.savedBQ;
 
   return true;
 }
